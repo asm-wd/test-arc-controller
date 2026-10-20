@@ -12,8 +12,14 @@ jobs:
   test:
     runs-on: arc-linux
     steps:
-      - uses: actions/checkout@v4
-      - run: |
-          curl ifconfig.io
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Print Runner Details and Public IP
+        run: |
+          echo "Runner Public IP Address:"
+          curl -s ifconfig.me
+          echo "" # Adds a newline for cleaner log output
+          
           echo "Running on an ARC-managed runner"
           uname -a
