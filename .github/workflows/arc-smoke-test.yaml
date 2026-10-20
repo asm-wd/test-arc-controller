@@ -14,5 +14,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: |
+          curl ifconfig.io
           echo "Running on an ARC-managed runner"
           uname -a
