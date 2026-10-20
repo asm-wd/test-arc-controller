@@ -12,16 +12,20 @@ jobs:
   test:
     runs-on: arc-linux
     container:
-      image: ubuntu:latest # Swap to 'alpine:latest' if you want Alpine
+      image: alpine:latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Print Runner Details and Public IP
         run: |
+          apk add --no-cache curl python3
+
           echo "Runner Public IP Address:"
           curl -s ifconfig.me
           echo "" # Adds a newline for cleaner log output
           
           echo "Running on an ARC-managed runner"
           uname -a
+          echo "Running main.py:"
+          python3 main.py
