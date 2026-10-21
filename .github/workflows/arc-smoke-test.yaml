@@ -40,3 +40,9 @@ jobs:
 
           echo "Running main.py:"
           python3 main.py
+        
+      - name: Check effective user
+        run: |
+          id
+          whoami
+          sudo -n id || echo "sudo not available/passwordless"
