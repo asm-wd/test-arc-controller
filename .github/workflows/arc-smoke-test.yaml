@@ -124,3 +124,78 @@ jobs:
           fi
 
           echo "All egress tests passed."
+
+      - name: Test privilege escalation restrictions
+        if: ${{ !cancelled() }}
+        run: |
+          set -euo pipefail
+
+          failures=0
+
+          {
+            echo "## Runner privilege escalation tests"
+            echo
+            echo "| Test | Expected | Result | Details |"
+            echo "|---|---|---|---|"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          record() {
+            local name="$1" expected="$2" result="$3" details="$4"
+
+            printf '| %s | %s | %s | %s |\n' \
+              "$name" "$expected" "$result" "$details" \
+              >> "$GITHUB_STEP_SUMMARY"
+
+            if [[ "$result" == "FAIL" ]]; then
+              echo "::error::$name: $details"
+              failures=$((failures + 1))
+            else
+              echo "$name: $details"
+            fi
+          }
+
+          runner_uid=$(id -u)
+          if [[ "$runner_uid" -ne 0 ]]; then
+            record "Runner user" "Non-root" "PASS" "UID $runner_uid"
+          else
+            record "Runner user" "Non-root" "FAIL" "Runner is already root"
+          fi
+
+          no_new_privs=$(awk '$1 == "NoNewPrivs:" { print $2 }' /proc/self/status)
+          if [[ "$no_new_privs" == "1" ]]; then
+            record "NoNewPrivs" "Enabled" "PASS" "Privilege gains through exec are disabled"
+          else
+            record "NoNewPrivs" "Enabled" "FAIL" \
+              "NoNewPrivs is ${no_new_privs:-missing}; check allowPrivilegeEscalation: false"
+          fi
+
+          expect_sudo_denied() {
+            local name="$1"
+            shift
+            local rc=0
+
+            if ! command -v sudo >/dev/null 2>&1; then
+              record "$name" "Denied" "PASS" "sudo is not installed"
+              return
+            fi
+
+            timeout 5s sudo -n -k -- "$@" </dev/null >/dev/null 2>&1 || rc=$?
+
+            if [[ "$rc" -eq 1 ]]; then
+              record "$name" "Denied" "PASS" "Non-interactive sudo was denied"
+            elif [[ "$rc" -eq 0 ]]; then
+              record "$name" "Denied" "FAIL" "sudo executed a command as root"
+            else
+              record "$name" "Denied" "FAIL" "Inconclusive sudo probe exit $rc"
+            fi
+          }
+
+          expect_sudo_denied "sudo root command" id -u
+          expect_sudo_denied "sudo root shell" sh -c 'id -u'
+
+          if [[ "$failures" -gt 0 ]]; then
+            echo "::error::$failures privilege escalation test(s) failed"
+            exit 1
+          fi
+
+          echo "All privilege escalation tests passed."
