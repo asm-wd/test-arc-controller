@@ -11,21 +11,32 @@ permissions:
 jobs:
   test:
     runs-on: arc-linux
-    container:
-      image: alpine:latest
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Install curl and Python
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends curl python3
+
+      - name: Install kubectl
+        uses: azure/setup-kubectl@v4
+        with:
+          version: 'v1.35.0' # Choose a version compatible with your cluster
+
       - name: Print Runner Details and Public IP
         run: |
-          apk add --no-cache curl python3
+          echo "kubectl version:"
+          kubectl version --client
 
           echo "Runner Public IP Address:"
-          curl -s ifconfig.me
-          echo "" # Adds a newline for cleaner log output
-          
+          curl --fail --silent --show-error https://ifconfig.me
+          echo ""
+
           echo "Running on an ARC-managed runner"
           uname -a
+
           echo "Running main.py:"
           python3 main.py
