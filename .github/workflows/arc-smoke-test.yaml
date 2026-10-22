@@ -10,7 +10,7 @@ permissions: {}
 
 jobs:
   test-egress:
-    runs-on: platform-arc-pilot
+    runs-on: arc-standard
     timeout-minutes: 10
 
     defaults:
@@ -204,7 +204,7 @@ jobs:
           echo "All privilege escalation tests passed."
 
   test-kubectl:
-    runs-on: platform-arc-pilot
+    runs-on: arc-standard
     timeout-minutes: 5
 
     defaults:
