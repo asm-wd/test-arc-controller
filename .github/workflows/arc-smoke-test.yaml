@@ -10,7 +10,7 @@ permissions: {}
 
 jobs:
   test-egress:
-    runs-on: arc-linux
+    runs-on: platform-arc-pilot
     timeout-minutes: 10
 
     defaults:
