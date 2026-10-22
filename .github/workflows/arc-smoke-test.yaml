@@ -101,6 +101,9 @@ jobs:
           }
 
           expect_allowed "Rancher HTTPS" "$RANCHER_URL"
+          expect_allowed "Rancher dev HTTPS" "https://rancher-dev.world-direct.at/"
+          expect_allowed "Rancher production HTTPS" "https://rancher.world-direct.at/"
+          expect_allowed "Rancher r HTTPS" "https://r.world-direct.at/"
           expect_allowed "GitHub" "https://github.com/"
           expect_allowed "GitHub API" "https://api.github.com/"
           expect_allowed "Action archive download" \
@@ -199,3 +202,27 @@ jobs:
           fi
 
           echo "All privilege escalation tests passed."
+
+  test-kubectl:
+    runs-on: arc-linux
+    timeout-minutes: 5
+
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: Check kubectl installation and client version
+        run: |
+          set -euo pipefail
+
+          echo "## Runner kubectl check" >> "$GITHUB_STEP_SUMMARY"
+
+          if ! command -v kubectl; then
+            echo "::error::kubectl is not installed or is not on PATH"
+            echo "FAIL: kubectl is not installed or is not on PATH" \
+              >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+
+          kubectl version --client | tee -a "$GITHUB_STEP_SUMMARY"
