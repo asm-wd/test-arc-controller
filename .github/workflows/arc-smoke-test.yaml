@@ -204,7 +204,7 @@ jobs:
           echo "All privilege escalation tests passed."
 
   test-kubectl:
-    runs-on: arc-linux
+    runs-on: platform-arc-pilot
     timeout-minutes: 5
 
     defaults:
